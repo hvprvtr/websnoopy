@@ -222,3 +222,4 @@ with open("websnoopy.log", "w") as fh:
         fh.write(str(result) + "\n")
 
 print("Done")
+#TODO mark upload forms

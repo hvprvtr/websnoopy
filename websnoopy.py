@@ -22,6 +22,7 @@ IGNORE_STATUSES = [502, 503, 504, 497]
 #TODO in files all of it
 IGNORE_HEADERS = [
     'content-encoding', 'connection', 'date', 'Transfer-Encoding',
+    'content-language',
     'Expires', 'X-Frame-Options:', 'Content-Length', 'Cache-Control',
     'Last-Modified', 'Accept-Ranges', 'ETag', 'Vary', 'X-Frame-Options',
     'X-Content-Type-Options', 'Referrer-Policy', 'X-XSS-Protection',
@@ -223,3 +224,18 @@ with open("websnoopy.log", "w") as fh:
 
 print("Done")
 #TODO mark upload forms
+#TODO игнорим text/html;charset=*, а не как сейчас
+#TODO список всех титлов
+#TODO список всех имён заголовков
+#TODO список всех имён куков
+#TODO детект формы работает не правильно
+#TODO список всех урлов с формами
+#TODO список всех предположительных апи
+#TODO листинги/трейсы - отдельные списки
+#TODO список всех content-type
+#TODO список всех sever
+#TODO список всех x-powered-by
+#TODO запрос не только с разными юзерагентами, но и разные контент-тайпы - будет ли меняться CT ответа?
+#TODO пропущен CT text/html;charset=UTF-8
+#TODO большой список og: meta - взять из AJ + apple-mobile-web-status + msapplication
+#TODO отдельный список X-хедеров

@@ -1,16 +1,25 @@
 #!/usr/bin/python3
 
+import os.path
 import re
 import queue
 import threading
-import sys
+from pprint import pprint
 import requests
 import random
 import time
 from bs4 import BeautifulSoup
 import urllib3
+import argparse
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+parser = argparse.ArgumentParser(description='Grab common info about web-servers and apps.')
+
+parser.add_argument('-p', '--project', help="Name of project (prefix for result files)", required=True)
+parser.add_argument('-l', '--list', help="List of targets URLs", required=True)
+args = parser.parse_args()
+
 
 #TODO E-tags list separately!
 #TODO normal ua, mobile UA
@@ -34,6 +43,16 @@ IGNORE_METAS = ['keywords', 'viewport', 'mobile-web-app-capable', 'viewport', 't
                 'format-detection',]
 
 results = []
+
+all_titles = set()
+all_headers_names = set()
+all_meta_names = set()
+all_cookie_names = set()
+all_content_types = set()
+all_servers = set()
+all_powered_by = set()
+all_x_headers = set()
+all_codes = set()
 
 
 def is_header_ignore(header_name, header_value):
@@ -66,6 +85,7 @@ class Web(object):
     got_form = None
 
     def __init__(self, url, resp):
+
         self.headers = {}
         self.title = ""
         self.description = ""
@@ -78,6 +98,24 @@ class Web(object):
         self._fill_title(resp)
         self._fill_metas(resp)
         self._fill_form(resp)
+
+        all_titles.add(self.title)
+
+        all_meta_names.update(self.metas.keys())
+        all_codes.add(self.code)
+        all_headers_names.update(self.headers.keys())
+        if 'server' in self.headers.keys():
+            all_servers.add(self.headers.get('server'))
+        if 'x-powered-by' in self.headers.keys():
+            all_servers.add(self.headers.get('x-powered-by'))
+        for header_name in self.headers.keys():
+            if not header_name.startswith('x-'):
+                continue
+            all_x_headers.add(header_name)
+        if 'content-type' in self.headers.keys():
+            all_content_types.add(self.headers.get('content-type'))
+
+        all_cookie_names.update(resp.cookies.keys())
 
     def _fill_form(self, resp):
         self.got_form = "<form " in resp.text.lower() or \
@@ -108,7 +146,11 @@ class Web(object):
                                                        'x-ua-compatible', 'pragma',
                                                        'content-security-policy', 'refresh',
                                                        'cache-control', 'content-language',
-                                                       'content-script-type']: #TODO чище, мб с хедерами объединить?
+                                                       'content-script-type',
+                                                       'MobileOptimized',
+                                                       'apple-mobile-web-app-status-bar-style',
+                                                       'apple-mobile-web-app-title',
+                                                       'color-scheme']: #TODO чище, мб с хедерами объединить?
                 continue
 
             meta_name = meta.get('name')
@@ -116,8 +158,7 @@ class Web(object):
                 meta_name = meta.get('property')
 
             if meta_name is None:
-                print("Meta without name! " + str(meta))
-                exit(0) #TODO in log, показать в конце работы
+                meta_name = "META_WITHOUT_NAME"
 
             if is_meta_ignore(meta_name):
                 continue
@@ -167,15 +208,19 @@ class Worker(threading.Thread):
                 url = q.get(False)
                 try:
                     resp = requests.get(
-                        url, verify=False, timeout=3, headers={'User-Agent': 'Mozilla/5.0'},
-                    allow_redirects=False)
+                        url,
+                        verify=False,
+                        timeout=3,
+                        headers={'User-Agent': 'Mozilla/5.0'},
+                        allow_redirects=False)
 
                     if resp.status_code in IGNORE_STATUSES:
                         continue
+
                     web = Web(url, resp)
                     results.append(web)
                 except BaseException as e:
-                    # print("Exception: {0} => {1}".format(e, url))
+                    print("Exception: {0} => {1}".format(e, url))
                     pass
             except queue.Empty:
                 break
@@ -185,7 +230,7 @@ class Worker(threading.Thread):
 
 
 targets = []
-for line in open(sys.argv[1]):
+for line in open(args.list):
     line = line.strip()
     if not len(line):
         continue
@@ -214,28 +259,51 @@ while is_alive:
             is_alive = True
             break
 
-    time.sleep(10)
+    time.sleep(1)
     print("Targets left: {0}".format(q.qsize()))
 
+if not os.path.exists(args.project):
+    os.mkdir(args.project)
+
 #TODO separate thread here? Data may lost on crash
-with open("websnoopy.log", "w") as fh:
+with open(args.project + "/websnoopy.log", "w") as fh:
     for result in results:
         fh.write(str(result) + "\n")
 
-print("Done")
+with open(args.project + "/titles.log", "w") as fh:
+    fh.write("\n".join(sorted(all_titles)))
+with open(args.project + "/headers-names.log", "w") as fh:
+    fh.write("\n".join(sorted(all_headers_names)))
+with open(args.project + "/x-headers.log", "w") as fh:
+    fh.write("\n".join(sorted(all_x_headers)))
+with open(args.project + "/powered-by-headers.log", "w") as fh:
+    fh.write("\n".join(sorted(all_powered_by)))
+with open(args.project + "/server-headers.log", "w") as fh:
+    fh.write("\n".join(sorted(all_servers)))
+with open(args.project + "/content-types.log", "w") as fh:
+    fh.write("\n".join(sorted(all_content_types)))
+with open(args.project + "/metas-names.log", "w") as fh:
+    fh.write("\n".join(sorted(all_meta_names)))
+with open(args.project + "/cookie-names.log", "w") as fh:
+    fh.write("\n".join(sorted(all_cookie_names)))
+with open(args.project + "/codes.log", "w") as fh:
+    fh.write("\n".join(
+        list(map(str, sorted(all_codes))))
+    )
+
+# all_codes = set()
+
+print("Done. Look results in ./" + args.project)
+
+
+
 #TODO mark upload forms
 #TODO игнорим text/html;charset=*, а не как сейчас
-#TODO список всех титлов
-#TODO список всех имён заголовков
-#TODO список всех имён куков
 #TODO детект формы работает не правильно
 #TODO список всех урлов с формами
 #TODO список всех предположительных апи
 #TODO листинги/трейсы - отдельные списки
-#TODO список всех content-type
-#TODO список всех sever
-#TODO список всех x-powered-by
-#TODO запрос не только с разными юзерагентами, но и разные контент-тайпы - будет ли меняться CT ответа?
+#TODO запрос не только с разными юзерагентами, но и разные контент-тайпы - будет ли меняться CT ответа?, XHR-req header
 #TODO пропущен CT text/html;charset=UTF-8
 #TODO большой список og: meta - взять из AJ + apple-mobile-web-status + msapplication
-#TODO отдельный список X-хедеров
+#TODO .api. в имени хоста - апи флаг

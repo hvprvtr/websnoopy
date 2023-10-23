@@ -250,6 +250,7 @@ for _ in range(THREADS_LIMIT):
     w.start()
     pool.append(w)
 
+stime = int(time.time())
 is_alive = True
 while is_alive:
     is_alive = False
@@ -260,7 +261,8 @@ while is_alive:
             break
 
     time.sleep(1)
-    print("Targets left: {0}".format(q.qsize()))
+    if (int(time.time()) - stime) % 60 == 0:
+        print("Targets left: {0}".format(q.qsize()))
 
 if not os.path.exists(args.project):
     os.mkdir(args.project)

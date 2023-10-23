@@ -107,7 +107,7 @@ class Web(object):
         if 'server' in self.headers.keys():
             all_servers.add(self.headers.get('server'))
         if 'x-powered-by' in self.headers.keys():
-            all_servers.add(self.headers.get('x-powered-by'))
+            all_powered_by.add(self.headers.get('x-powered-by'))
         for header_name in self.headers.keys():
             if not header_name.startswith('x-'):
                 continue
@@ -132,7 +132,7 @@ class Web(object):
             header_value = resp.headers.get(header_name)
             if is_header_ignore(header_name, header_value):
                 continue
-            self.headers[header_name] = header_value
+            self.headers[header_name.lower()] = header_value.lower()
 
     def _fill_metas(self, resp):
         soup = BeautifulSoup(resp.text, "lxml")
@@ -220,13 +220,14 @@ class Worker(threading.Thread):
                     web = Web(url, resp)
                     results.append(web)
                 except BaseException as e:
-                    print("Exception: {0} => {1}".format(e, url))
+                    # print("Exception: {0} => {1}".format(e, url))
                     pass
             except queue.Empty:
                 break
             except BaseException as e:
-                print("Exception: {0} => {1}".format(e, url))
+                # print("Exception: {0} => {1}".format(e, url))
                 pass
+            #TODO debug param in config.ini for show exceptions
 
 
 targets = []
@@ -309,3 +310,4 @@ print("Done. Look results in ./" + args.project)
 #TODO пропущен CT text/html;charset=UTF-8
 #TODO большой список og: meta - взять из AJ + apple-mobile-web-status + msapplication
 #TODO .api. в имени хоста - апи флаг
+#TODO threads in params

@@ -26,7 +26,7 @@ args = parser.parse_args()
 #TODO api 401
 #TODO check form in end of redirect
 THREADS_LIMIT = 5
-
+#TODO как отличить 400 http=>https от обычного не полного запроса (апи например)?
 IGNORE_STATUSES = [502, 503, 504, 497]
 #TODO in files all of it
 IGNORE_HEADERS = [
@@ -56,8 +56,8 @@ all_codes = set()
 
 
 def is_header_ignore(header_name, header_value):
-    if header_name.lower() == 'content-type' and header_value.lower() in \
-            ["text/html", "text/html; charset=utf-8", "text/html; charset=utf8"]:
+    if header_name.lower() == 'content-type' and \
+            re.match('^text/html(;( |)charset=([a-z0-9\-]+))*$', header_value, re.I):
         return True
 
     for ignore_name in IGNORE_HEADERS:
@@ -199,6 +199,20 @@ class Web(object):
         return s
 
 
+def is_it_http_req_to_https(resp):
+    if resp.status_code != 400:
+        return False
+
+    phrases =['The plain HTTP request was sent to HTTPS port',
+              'speaking plain HTTP to an SSL-enabled']
+    for phrase in phrases:
+        if phrase not in resp.text:
+            continue
+        return True
+
+    return False
+
+
 class Worker(threading.Thread):
     daemon = True
 
@@ -214,7 +228,8 @@ class Worker(threading.Thread):
                         headers={'User-Agent': 'Mozilla/5.0'},
                         allow_redirects=False)
 
-                    if resp.status_code in IGNORE_STATUSES:
+                    if resp.status_code in IGNORE_STATUSES or \
+                            is_it_http_req_to_https(resp):
                         continue
 
                     web = Web(url, resp)
@@ -307,7 +322,7 @@ print("Done. Look results in ./" + args.project)
 #TODO список всех предположительных апи
 #TODO листинги/трейсы - отдельные списки
 #TODO запрос не только с разными юзерагентами, но и разные контент-тайпы - будет ли меняться CT ответа?, XHR-req header
-#TODO пропущен CT text/html;charset=UTF-8
 #TODO большой список og: meta - взять из AJ + apple-mobile-web-status + msapplication
 #TODO .api. в имени хоста - апи флаг
 #TODO threads in params
+#TODO urls lists by codes like urls-500.txt

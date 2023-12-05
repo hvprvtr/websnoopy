@@ -259,30 +259,24 @@ q = queue.Queue()
 for t in targets:
     q.put(t)
 
-bar = alive_bar(q.qsize())
-print("Targets: {0}".format(q.qsize()))
+with alive_bar(q.qsize()) as bar:
+    pool = []
+    for _ in range(THREADS_LIMIT):
+        w = Worker()
+        w.start()
+        pool.append(w)
 
-start_q_size = q.qsize()
-pool = []
-for _ in range(THREADS_LIMIT):
-    w = Worker()
-    w.start()
-    pool.append(w)
+    stime = int(time.time())
+    is_alive = True
+    while is_alive:
+        is_alive = False
 
+        for w in pool:
+            if w.is_alive():
+                is_alive = True
+                break
 
-stime = int(time.time())
-is_alive = True
-while is_alive:
-    is_alive = False
-
-    for w in pool:
-        if w.is_alive():
-            is_alive = True
-            break
-
-    time.sleep(1)
-    if (int(time.time()) - stime) % 60 == 0:
-        print("Targets left: {0}".format(q.qsize()))
+        time.sleep(1)
 
 if not os.path.exists(args.project):
     os.mkdir(args.project)

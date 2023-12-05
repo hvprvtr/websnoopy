@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description='Grab common info about web-servers
 
 parser.add_argument('-p', '--project', help="Name of project (prefix for result files)", required=True)
 parser.add_argument('-l', '--list', help="List of targets URLs", required=True)
+parser.add_argument('-t', '--threads', help="Threads count, default 20", type=int, default=20)
 args = parser.parse_args()
 
 # TODO E-tags list separately!
@@ -25,9 +26,10 @@ args = parser.parse_args()
 # TODO progress bar
 # TODO threads param
 # TODO api 401
+# TODO meta generator separate list
 # TODO check form in end of redirect
-THREADS_LIMIT = 5
-# TODO как отличить 400 http=>https от обычного не полного запроса (апи например)?
+THREADS_LIMIT = args.threads
+
 IGNORE_STATUSES = [502, 503, 504, 497]
 # TODO in files all of it
 IGNORE_HEADERS = [
@@ -39,9 +41,9 @@ IGNORE_HEADERS = [
     'Strict-Transport-Security', 'x-accel-buffering', 'Pragma', 'Content-Security-Policy',
     'X-UA-Compatible', 'Age', 'Permissions-Policy', 'Keep-Alive',
 ]
-IGNORE_METAS = ['keywords', 'viewport', 'mobile-web-app-capable', 'viewport', 'theme-color',
-                'facebook-domain-verification', 'description', 'robots', 'google-site-verification',
-                'format-detection', ]
+IGNORE_METAS = ['keywords', 'viewport', 'mobile-web-app-capable', 'viewport',
+                'theme-color', 'facebook-domain-verification', 'description', 'robots',
+                'google-site-verification', 'format-detection', ]
 
 results = []
 
@@ -180,7 +182,7 @@ class Web(object):
         if len(self.description):
             s += "Description: {0}\n".format(self.description)
 
-        if self:
+        if self.got_form:
             s += "Form: YES\n"
 
         if len(self.headers):

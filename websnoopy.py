@@ -11,6 +11,7 @@ import time
 from bs4 import BeautifulSoup
 import urllib3
 import argparse
+from alive_progress import alive_bar
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -23,8 +24,6 @@ args = parser.parse_args()
 
 # TODO E-tags list separately!
 # TODO normal ua, mobile UA
-# TODO progress bar
-# TODO threads param
 # TODO api 401
 # TODO meta generator separate list
 # TODO check form in end of redirect
@@ -222,6 +221,7 @@ class Worker(threading.Thread):
         while True:
             try:
                 url = q.get(False)
+                bar()
                 try:
                     resp = requests.get(
                         url,
@@ -268,6 +268,7 @@ for _ in range(THREADS_LIMIT):
     w.start()
     pool.append(w)
 
+bar = alive_bar(start_q_size)
 stime = int(time.time())
 is_alive = True
 while is_alive:

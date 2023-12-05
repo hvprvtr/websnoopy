@@ -259,6 +259,7 @@ q = queue.Queue()
 for t in targets:
     q.put(t)
 
+bar = alive_bar(q.qsize())
 print("Targets: {0}".format(q.qsize()))
 
 start_q_size = q.qsize()
@@ -268,7 +269,7 @@ for _ in range(THREADS_LIMIT):
     w.start()
     pool.append(w)
 
-bar = alive_bar(start_q_size)
+
 stime = int(time.time())
 is_alive = True
 while is_alive:

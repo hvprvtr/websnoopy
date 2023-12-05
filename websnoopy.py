@@ -20,15 +20,16 @@ parser.add_argument('-p', '--project', help="Name of project (prefix for result 
 parser.add_argument('-l', '--list', help="List of targets URLs", required=True)
 args = parser.parse_args()
 
-
-#TODO E-tags list separately!
-#TODO normal ua, mobile UA
-#TODO api 401
-#TODO check form in end of redirect
+# TODO E-tags list separately!
+# TODO normal ua, mobile UA
+# TODO progress bar
+# TODO threads param
+# TODO api 401
+# TODO check form in end of redirect
 THREADS_LIMIT = 5
-#TODO как отличить 400 http=>https от обычного не полного запроса (апи например)?
+# TODO как отличить 400 http=>https от обычного не полного запроса (апи например)?
 IGNORE_STATUSES = [502, 503, 504, 497]
-#TODO in files all of it
+# TODO in files all of it
 IGNORE_HEADERS = [
     'content-encoding', 'connection', 'date', 'Transfer-Encoding',
     'content-language',
@@ -40,7 +41,7 @@ IGNORE_HEADERS = [
 ]
 IGNORE_METAS = ['keywords', 'viewport', 'mobile-web-app-capable', 'viewport', 'theme-color',
                 'facebook-domain-verification', 'description', 'robots', 'google-site-verification',
-                'format-detection',]
+                'format-detection', ]
 
 results = []
 
@@ -72,7 +73,6 @@ def is_meta_ignore(meta_name):
         if ignore_name.lower() == meta_name.lower():
             return True
     return False
-
 
 
 class Web(object):
@@ -150,7 +150,7 @@ class Web(object):
                                                        'MobileOptimized',
                                                        'apple-mobile-web-app-status-bar-style',
                                                        'apple-mobile-web-app-title',
-                                                       'color-scheme']: #TODO чище, мб с хедерами объединить?
+                                                       'color-scheme']:  # TODO чище, мб с хедерами объединить?
                 continue
 
             meta_name = meta.get('name')
@@ -203,8 +203,8 @@ def is_it_http_req_to_https(resp):
     if resp.status_code != 400:
         return False
 
-    phrases =['The plain HTTP request was sent to HTTPS port',
-              'speaking plain HTTP to an SSL-enabled']
+    phrases = ['The plain HTTP request was sent to HTTPS port',
+               'speaking plain HTTP to an SSL-enabled']
     for phrase in phrases:
         if phrase not in resp.text:
             continue
@@ -242,7 +242,7 @@ class Worker(threading.Thread):
             except BaseException as e:
                 # print("Exception: {0} => {1}".format(e, url))
                 pass
-            #TODO debug param in config.ini for show exceptions
+            # TODO debug param in config.ini for show exceptions
 
 
 targets = []
@@ -283,7 +283,7 @@ while is_alive:
 if not os.path.exists(args.project):
     os.mkdir(args.project)
 
-#TODO separate thread here? Data may lost on crash
+# TODO separate thread here? Data may lost on crash
 with open(args.project + "/websnoopy.log", "w") as fh:
     for result in results:
         fh.write(str(result) + "\n")
@@ -313,16 +313,14 @@ with open(args.project + "/codes.log", "w") as fh:
 
 print("Done. Look results in ./" + args.project)
 
-
-
-#TODO mark upload forms
-#TODO игнорим text/html;charset=*, а не как сейчас
-#TODO детект формы работает не правильно
-#TODO список всех урлов с формами
-#TODO список всех предположительных апи
-#TODO листинги/трейсы - отдельные списки
-#TODO запрос не только с разными юзерагентами, но и разные контент-тайпы - будет ли меняться CT ответа?, XHR-req header
-#TODO большой список og: meta - взять из AJ + apple-mobile-web-status + msapplication
-#TODO .api. в имени хоста - апи флаг
-#TODO threads in params
-#TODO urls lists by codes like urls-500.txt
+# TODO mark upload forms
+# TODO игнорим text/html;charset=*, а не как сейчас
+# TODO детект формы работает не правильно
+# TODO список всех урлов с формами
+# TODO список всех предположительных апи
+# TODO листинги/трейсы - отдельные списки
+# TODO запрос не только с разными юзерагентами, но и разные контент-тайпы - будет ли меняться CT ответа?, XHR-req header
+# TODO большой список og: meta - взять из AJ + apple-mobile-web-status + msapplication
+# TODO .api. в имени хоста - апи флаг
+# TODO threads in params
+# TODO urls lists by codes like urls-500.txt

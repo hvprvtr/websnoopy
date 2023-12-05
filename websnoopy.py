@@ -287,25 +287,43 @@ with open(args.project + "/websnoopy.log", "w") as fh:
         fh.write(str(result) + "\n")
 
 with open(args.project + "/titles.log", "w") as fh:
+    fh.write("================ TITLES =============\n")
     fh.write("\n".join(sorted(all_titles)))
+    fh.write("================ /TITLES =============\n")
 with open(args.project + "/headers-names.log", "w") as fh:
+    fh.write("================ HEADERS =============\n")
     fh.write("\n".join(sorted(all_headers_names)))
+    fh.write("================ /HEADERS =============\n")
 with open(args.project + "/x-headers.log", "w") as fh:
+    fh.write("================ X-HEADERS =============\n")
     fh.write("\n".join(sorted(all_x_headers)))
+    fh.write("================ /X-HEADERS =============\n")
 with open(args.project + "/powered-by-headers.log", "w") as fh:
+    fh.write("================ POWERED-BY =============\n")
     fh.write("\n".join(sorted(all_powered_by)))
+    fh.write("================ /POWERED-BY =============\n")
 with open(args.project + "/server-headers.log", "w") as fh:
+    fh.write("================ SERVER =============\n")
     fh.write("\n".join(sorted(all_servers)))
+    fh.write("================ /SERVER =============\n")
 with open(args.project + "/content-types.log", "w") as fh:
+    fh.write("================ CONTENT-TYPES =============\n")
     fh.write("\n".join(sorted(all_content_types)))
+    fh.write("================ /CONTENT-TYPES =============\n")
 with open(args.project + "/metas-names.log", "w") as fh:
+    fh.write("================ METAS =============\n")
     fh.write("\n".join(sorted(all_meta_names)))
+    fh.write("================ /METAS =============\n")
 with open(args.project + "/cookie-names.log", "w") as fh:
+    fh.write("================ COOKIES =============\n")
     fh.write("\n".join(sorted(all_cookie_names)))
+    fh.write("================ /COOKIES =============\n")
 with open(args.project + "/codes.log", "w") as fh:
+    fh.write("================ COODES =============\n")
     fh.write("\n".join(
         list(map(str, sorted(all_codes))))
     )
+    fh.write("================ COODES =============\n")
 
 # all_codes = set()
 
